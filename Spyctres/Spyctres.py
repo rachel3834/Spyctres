@@ -851,9 +851,7 @@ def bin_spectrum(data,lambda_ref):
     # match https://www.astrobetter.com/blog/2013/08/12/python-tip-re-sampling-spectra-with-pysynphot/ but gives errors
     steps = np.diff(lambda_ref)/2
     steps = np.r_[steps,steps[-1]]
-    
     mask = (lambda_ref>=data[0,0]) & (lambda_ref<data[-1,0])
-    
     flux = []
     errors = []
     cij = []
@@ -863,12 +861,15 @@ def bin_spectrum(data,lambda_ref):
         try:
             index = np.argmin(np.abs(data[:,0]-lamb))
 
-            if np.abs(data[index,0]-lamb)>10**-10: 
-               
-                index_moins = np.argmin(np.abs(data[:,0]-lamb+steps[ind]))    
+            if np.abs(data[index,0]-lamb)>10**-10:
+
+                # Array indices need to be capped to avoid stepping off the end of arrays
+                index_moins = np.argmin(np.abs(data[:,0]-lamb+steps[ind]))
                 index_plus = np.argmin(np.abs(data[:,0]-lamb-steps[ind]))
-
-
+                if index_plus >= len(data[:,0]) - 1:
+                    index_plus = len(data[:,0]) - 2
+                if index_moins < 0:
+                    index_moins = 0
 
                 winside = data[index_moins:index_plus+1,0]
                 einside = data[index_moins:index_plus+1,2]
@@ -877,7 +878,7 @@ def bin_spectrum(data,lambda_ref):
 
                 efficiency = np.zeros(len(winside))
                 efficiency[1:-1] = 1
-                    
+
                 efficiency[0] = np.abs(0.5-(data[index_moins,0]-lamb+steps[ind]))
                 efficiency[-1] = np.abs(0.5-(data[index_plus,0]-lamb-steps[ind]))
 
@@ -885,9 +886,9 @@ def bin_spectrum(data,lambda_ref):
                 cij_line = np.zeros(len(data))
                 cij_line[index_moins:index_plus+1] = efficiency*bins/np.sum(bins*efficiency)
                 cij.append(cij_line)
-                
+
             else:
-                   
+
                 flux.append(data[index,1])
                 cij_line = np.zeros(len(data))
                 cij_line[index] = 1
