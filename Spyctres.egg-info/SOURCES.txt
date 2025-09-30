@@ -1,4 +1,5 @@
 LICENSE
+README.md
 setup.py
 Spyctres/Spyctres.py
 Spyctres/__init__.py

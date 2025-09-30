@@ -1,4 +1,4 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.4
 Name: Spyctres
 Version: 0.4.0
 Summary: It fits your spectra!
@@ -21,3 +21,13 @@ Requires-Dist: matplotlib
 Requires-Dist: astropy
 Requires-Dist: speclite
 Requires-Dist: pysynphot
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary

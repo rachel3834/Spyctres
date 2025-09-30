@@ -257,6 +257,7 @@ def plot_element_lines(figure_axe,lines):
 
 def fit_spectra_chichi(params,spectras=[],telluric_lines_mask=None,catalog='k93models'):
 
+    #print('FIT PARAMETERS: ', params)
     theta_s, Av, v_radial, log10_Teff, abundance,logg, = params[:6]
     Teff = 10**log10_Teff
     try:
@@ -265,7 +266,8 @@ def fit_spectra_chichi(params,spectras=[],telluric_lines_mask=None,catalog='k93m
         return np.inf
 
     normalisation = (10**theta_s/UAS_TO_RAD)**2    
-  
+    #print('NORMALIZE: ', normalisation)
+
     try:
     
         rescale_flux_parameters = [params[6+i] for i in range(len(spectras))]
@@ -274,6 +276,7 @@ def fit_spectra_chichi(params,spectras=[],telluric_lines_mask=None,catalog='k93m
     
         rescale_flux_parameters = None 
 
+    #print('RESCALE FLUX ', rescale_flux_parameters)
     try:
     
         rescale_errors_parameters = [params[6+len(spectras)+i] for i in range(len(spectras))]
@@ -281,7 +284,7 @@ def fit_spectra_chichi(params,spectras=[],telluric_lines_mask=None,catalog='k93m
     except:
     
         rescale_errors_parameters = None    
-    
+    #print('RESCALE ERRORS: ',rescale_errors_parameters)
 
     chichi = 0
     
@@ -295,21 +298,24 @@ def fit_spectra_chichi(params,spectras=[],telluric_lines_mask=None,catalog='k93m
         
         
         model_flux = np.array(model_spectrum(wave*u.AA)*1.98644746*10**-8/wave)
-        
+
         speed_correction = spectras[spectrum]['barycentric_velocity'].value 
         shifted_flux = velocity_correction(np.c_[wave,model_flux],speed_correction+v_radial)
-        #sbreakpoint()
+
         #shifted_flux= np.c_[wave,model_flux]
         absorption = 10**(Wang_absorption_law(Av,np.array(wave)/10000)/2.5)
         shifted_flux[:,1] *= normalisation/absorption*magnification
     
         shifted_flux_norm = np.copy(shifted_flux)
-        
+        #print('SHIFT FLUX: ',shifted_flux_norm)
+
         if rescale_flux_parameters is not None:
         
             rescale_flux = 10**rescale_flux_parameters[ind]
+            #print('RESCALED ', rescale_flux)
             shifted_flux_norm[:,1] /= rescale_flux
-       
+            #print('POST RESCALE: ', shifted_flux_norm[:,1])
+
         if telluric_lines_mask is not None:
         
             mask = telluric_lines_mask(data[:,0]).astype(bool)
@@ -328,6 +334,10 @@ def fit_spectra_chichi(params,spectras=[],telluric_lines_mask=None,catalog='k93m
             errors = data[:,2]*rescale_errors
         else:
              errors = data[:,2]
+
+        #print(data[mask_final,1], shifted_flux_norm[mask_final,1])
+        #print(errors[mask_final])
+
         residuals = (data[mask_final,1]-shifted_flux_norm[mask_final,1])**2/errors[mask_final]**2+2*np.log(errors[mask_final])+np.log(2*np.pi)
 
         chichi += np.sum(residuals)
@@ -347,13 +357,16 @@ def fit_spectra_chichi(params,spectras=[],telluric_lines_mask=None,catalog='k93m
             #flux_obs = 10**((27.4-ab_mag)/2.5)
             #flux_pred = 10**((27.4-predicted_mag_ab)/2.5)
 
+            #print(ab_mag, predicted_mag_ab, err_ab_mag)
             chichi += (ab_mag-predicted_mag_ab)**2/err_ab_mag**2
             #chichi += (flux_obs-flux_pred)**2/(flux_obs*err_ab_mag)**2
             #breakpoint()
             #if np.abs(ab_mag-predicted_mag_ab)>0.1:
             #    return np.inf
-    
-    return 0.5*chichi    
+
+    #print('CHI2 = ', chichi)
+
+    return 0.5*chichi
 
 
 def fit_spectra_with_constant_star_chichi(params,star_model,spectras=[],telluric_lines_mask=None):
